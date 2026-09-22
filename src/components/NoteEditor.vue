@@ -277,7 +277,7 @@ function onContentInput() {
   font-family: inherit;
   background-image: url(/assets/images/kgb.png);
   background-repeat: no-repeat;
-  background-size: 4%;
+  background-size: 50px;
   background-position: 98% 98%;
 }
 .editor__textarea::placeholder {
