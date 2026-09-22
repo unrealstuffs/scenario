@@ -86,46 +86,6 @@ function handleLogoClick() {
   }
 }
 
-/* ── Auth zone (right side) ─────────────────── */
-.header__auth {
-  display: flex;
-  align-items: center;
-  flex-shrink: 0;
-}
-
-.header__auth-icon {
-  font-size: 20px;
-  color: var(--text-muted);
-}
-
-.header__avatar {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 2px solid var(--accent);
-  cursor: pointer;
-}
-
-.header__signin-btn {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  background: var(--accent);
-  color: #fff;
-  border: none;
-  border-radius: var(--radius-sm);
-  padding: 8px 16px;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  font-family: inherit;
-  transition: background 0.15s;
-}
-.header__signin-btn:hover {
-  background: var(--accent-hover);
-}
-
 /* ── Mobile ─────────────────────────────────── */
 @media (max-width: 699px) {
   .header {
