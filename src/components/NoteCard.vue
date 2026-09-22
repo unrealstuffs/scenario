@@ -4,7 +4,7 @@
       <span class="note-card__title">{{ note.title || "Без названия" }}</span>
       <button
         class="note-card__delete"
-        @click.stop="$emit('delete')"
+        @click.stop="isConfirmOpen = true"
         title="Удалить"
       >
         <i class="pi pi-trash" />
@@ -12,18 +12,37 @@
     </div>
     <p class="note-card__preview">{{ preview }}</p>
     <span class="note-card__date">[{{ formattedDate }}]</span>
+
+    <!-- Модальное окно подтверждения удаления -->
+    <ConfirmModal
+      :is-open="isConfirmOpen"
+      :title="`Удалить «${note.title || 'Без названия'}»?`"
+      message="Этот материал будет удален безвозвратно."
+      confirm-text="Удалить"
+      cancel-text="Отмена"
+      @confirm="handleConfirmDelete"
+      @cancel="isConfirmOpen = false"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue";
+import { ref, computed } from "vue";
 import type { Note } from "../types";
+import ConfirmModal from "./ConfirmModal.vue";
 
 const props = defineProps<{ note: Note; active: boolean }>();
-defineEmits<{
+const emit = defineEmits<{
   (e: "select"): void;
   (e: "delete"): void;
 }>();
+
+const isConfirmOpen = ref(false);
+
+function handleConfirmDelete() {
+  isConfirmOpen.value = false;
+  emit("delete");
+}
 
 const preview = computed(() => {
   const text = props.note.content.trim();

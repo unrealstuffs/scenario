@@ -1,0 +1,20 @@
+/**
+ * Возвращает правильную форму слова в зависимости от числа (для русского языка).
+ * @param count Количество
+ * @param words Кортеж форм: [один, два-четыре, пять-много] (например, ['материал', 'материала', 'материалов'])
+ */
+export function pluralize(
+  count: number,
+  words: [string, string, string],
+): string {
+  const mod10 = Math.abs(count) % 10;
+  const mod100 = Math.abs(count) % 100;
+
+  if (mod10 === 1 && mod100 !== 11) {
+    return words[0];
+  }
+  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 10 || mod100 >= 20)) {
+    return words[1];
+  }
+  return words[2];
+}
