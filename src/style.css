@@ -1,3 +1,6 @@
+/* ── Primeicons (должен быть первым @import) ─ */
+@import "primeicons/primeicons.css";
+
 *,
 *::before,
 *::after {
@@ -6,7 +9,7 @@
   padding: 0;
 }
 
-/* Remove 300ms tap delay on mobile browsers (iOS Safari, older Android) */
+/* Remove 300ms tap delay on mobile browsers */
 a,
 button,
 input,
@@ -17,16 +20,35 @@ select,
   -webkit-tap-highlight-color: transparent;
 }
 
+/* ── Custom fonts ─────────────────────────── */
+@font-face {
+  font-family: "NotoSerif";
+  src: url("/assets/fonts/NotoSerifRegular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "NotoSerif";
+  src: url("/assets/fonts/NotoSerifBold.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* ── Design tokens ────────────────────────── */
 :root {
   --bg-primary: #0f0f0f;
-  --bg-secondary: #1a1a1a;
+  --bg-secondary: #1d1c21;
+  --bg-editor: #2b2a2f;
   --bg-card: #212121;
   --bg-card-hover: #2a2a2a;
   --bg-input: #1e1e1e;
   --border: #2e2e2e;
   --border-active: #444;
-  --accent: #6c8ebf;
-  --accent-hover: #7fa0d4;
+  --accent: #00adef;
+  --accent-hover: #27b3eb;
   --text-primary: #e8e8e8;
   --text-secondary: #888;
   --text-muted: #555;
@@ -42,6 +64,7 @@ html,
 body {
   height: 100%;
   font-family:
+    "NotoSerif",
     "Segoe UI",
     system-ui,
     -apple-system,
@@ -55,6 +78,7 @@ body {
   height: 100%;
 }
 
+/* ── Scrollbar ────────────────────────────── */
 ::-webkit-scrollbar {
   width: 6px;
 }

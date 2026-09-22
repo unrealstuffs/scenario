@@ -2,28 +2,13 @@
   <div class="editor">
     <!-- Header -->
     <div class="editor__header">
-      <button
-        v-if="isMobile"
-        class="btn btn--close btn--back"
-        @click="$emit('close')"
-      >
-        <svg
-          width="16"
-          height="16"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2.5"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        >
-          <polyline points="15 18 9 12 15 6" />
-        </svg>
+      <button v-if="isMobile" class="btn btn--back" @click="$emit('close')">
+        <i class="pi pi-angle-left" />
       </button>
       <input
         class="editor__title-input"
         v-model="localTitle"
-        placeholder="Название заметки…"
+        placeholder="Название материала..."
         @input="onTitleInput"
         maxlength="100"
       />
@@ -31,51 +16,16 @@
         <!-- Autosave indicator -->
         <Transition name="fade">
           <span v-if="saveStatus === 'saving'" class="save-indicator saving">
-            <svg
-              width="13"
-              height="13"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              class="spin"
-            >
-              <path d="M21 12a9 9 0 1 1-6.219-8.56" />
-            </svg>
+            <i class="pi pi-spin pi-spinner" />
             Сохраняется…
           </span>
           <span v-else-if="saveStatus === 'saved'" class="save-indicator saved">
-            <svg
-              width="13"
-              height="13"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2.5"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <polyline points="20 6 9 17 4 12" />
-            </svg>
+            <i class="pi pi-check" />
             Сохранено
           </span>
         </Transition>
         <button v-if="!isMobile" class="btn btn--close" @click="$emit('close')">
-          <svg
-            width="15"
-            height="15"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <line x1="18" y1="6" x2="6" y2="18" />
-            <line x1="6" y1="6" x2="18" y2="18" />
-          </svg>
+          <i class="pi pi-times" />
           Закрыть
         </button>
       </div>
@@ -93,74 +43,22 @@
     <div class="editor__footer">
       <div class="editor__stats">
         <span class="stat">
-          <svg
-            width="13"
-            height="13"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <path d="M4 6h16M4 12h16M4 18h7" />
-          </svg>
+          <i class="pi pi-align-left" />
           Симв: <strong>{{ charCount }}</strong>
         </span>
         <span class="stat">
-          <svg
-            width="13"
-            height="13"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <path
-              d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"
-            />
-          </svg>
+          <i class="pi pi-comment" />
           Слов: <strong>{{ wordCount }}</strong>
         </span>
         <span class="stat stat--duration" :title="`Скорость: ${wpm} слов/мин`">
-          <svg
-            width="13"
-            height="13"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <circle cx="12" cy="12" r="10" />
-            <polyline points="12 6 12 12 16 14" />
-          </svg>
+          <i class="pi pi-clock" />
           <span>{{ duration }}</span>
           <button
             class="wpm-btn"
             @click.stop="showWpmInput = !showWpmInput"
             title="Изменить скорость речи"
           >
-            <svg
-              width="11"
-              height="11"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <path
-                d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"
-              />
-              <path
-                d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"
-              />
-            </svg>
+            <i class="pi pi-pencil" />
           </button>
           <!-- WPM inline editor -->
           <Transition name="pop">
@@ -204,10 +102,8 @@ const emit = defineEmits<{
 const localTitle = ref(props.note.title);
 const localContent = ref(props.note.content);
 
-// Autosave status: '' | 'saving' | 'saved'
 const saveStatus = ref<"" | "saving" | "saved">("");
 
-// WPM setting — default 168 (= 2.8 words/sec)
 const WPM_KEY = "notes-wpm";
 const wpm = ref<number>(Number(localStorage.getItem(WPM_KEY)) || 168);
 const showWpmInput = ref(false);
@@ -230,7 +126,6 @@ function applyWpm() {
   showWpmInput.value = false;
 }
 
-// Sync when note switches
 watch(
   () => props.note,
   (n) => {
@@ -254,7 +149,6 @@ const duration = computed(() => {
   return `${mm}:${ss}`;
 });
 
-// Autosave with debounce
 let saveTimer: ReturnType<typeof setTimeout>;
 
 function scheduleAutosave() {
@@ -331,14 +225,6 @@ function onContentInput() {
 .save-indicator.saved {
   color: var(--success);
 }
-.spin {
-  animation: spin 1s linear infinite;
-}
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
 
 /* Buttons */
 .btn {
@@ -367,9 +253,14 @@ function onContentInput() {
   color: var(--text-primary);
 }
 .btn--back {
-  padding: 7px 8px;
+  padding: 7px 10px;
   border: none;
   background: var(--bg-card);
+  color: var(--text-secondary);
+  font-size: 16px;
+}
+.btn--back:hover {
+  color: var(--text-primary);
 }
 
 /* Textarea */
@@ -384,6 +275,10 @@ function onContentInput() {
   line-height: 1.75;
   color: var(--text-primary);
   font-family: inherit;
+  background-image: url(/assets/images/kgb.png);
+  background-repeat: no-repeat;
+  background-size: 4%;
+  background-position: 98% 98%;
 }
 .editor__textarea::placeholder {
   color: var(--text-muted);
@@ -412,11 +307,13 @@ function onContentInput() {
   color: var(--text-secondary);
   position: relative;
 }
+.stat .pi {
+  font-size: 12px;
+}
 .stat strong {
   color: var(--text-primary);
 }
 
-/* Duration stat */
 .stat--duration {
   gap: 4px;
 }
@@ -424,13 +321,14 @@ function onContentInput() {
 .wpm-btn {
   background: none;
   border: none;
-  padding: 2px;
+  padding: 2px 3px;
   cursor: pointer;
   color: var(--text-muted);
   display: flex;
   align-items: center;
   border-radius: 3px;
   transition: color 0.15s;
+  font-size: 11px;
 }
 .wpm-btn:hover {
   color: var(--accent);

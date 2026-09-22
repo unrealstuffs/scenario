@@ -1,197 +1,147 @@
 <template>
-  <div class="app">
-    <!-- Sidebar -->
-    <aside
-      class="sidebar"
-      :class="{ 'sidebar--hidden': isMobile && activeNote }"
-    >
-      <div class="sidebar__header">
-        <h1 class="sidebar__logo">
-          <svg
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <path
-              d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
-            />
-            <polyline points="14 2 14 8 20 8" />
-            <line x1="16" y1="13" x2="8" y2="13" />
-            <line x1="16" y1="17" x2="8" y2="17" />
-            <polyline points="10 9 9 9 8 9" />
-          </svg>
-          Заметки
-        </h1>
-        <button
-          class="sidebar__new-btn"
-          @click="createAndOpen"
-          title="Новая заметка"
-        >
-          <svg
-            width="18"
-            height="18"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2.5"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <line x1="12" y1="5" x2="12" y2="19" />
-            <line x1="5" y1="12" x2="19" y2="12" />
-          </svg>
+  <div class="app-wrapper">
+    <AppHeader />
+
+    <!-- Ears: positioned behind sidebar, overlapping header -->
+    <img
+      v-if="currentUser"
+      :src="earsSrc"
+      class="ears"
+      alt=""
+      aria-hidden="true"
+    />
+
+    <!-- Not authenticated -->
+    <div v-if="!authLoading && !currentUser" class="app app--locked">
+      <div class="locked-msg">
+        <i class="pi pi-lock locked-msg__icon" />
+        <p>Доступ только для авторизованных</p>
+        <button class="btn-create" @click="signInWithGoogle">
+          <i class="pi pi-google" />
+          Войти через Google
         </button>
       </div>
+    </div>
 
-      <!-- Search -->
-      <div class="sidebar__search-wrap">
-        <svg
-          class="sidebar__search-icon"
-          width="14"
-          height="14"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        >
-          <circle cx="11" cy="11" r="8" />
-          <line x1="21" y1="21" x2="16.65" y2="16.65" />
-        </svg>
-        <input
-          class="sidebar__search"
-          v-model="searchQuery"
-          placeholder="Поиск заметок…"
-        />
-      </div>
+    <!-- Loading auth state -->
+    <div v-else-if="authLoading" class="app app--locked">
+      <i
+        class="pi pi-spin pi-spinner"
+        style="font-size: 32px; color: var(--text-muted)"
+      />
+    </div>
 
-      <!-- Notes list -->
-      <div class="sidebar__list">
-        <template v-if="filteredNotes.length > 0">
-          <NoteCard
-            v-for="note in filteredNotes"
-            :key="note.id"
-            :note="note"
-            :active="activeNoteId === note.id"
-            @select="openNote(note.id)"
-            @delete="removeNote(note.id)"
-          />
-        </template>
-        <div v-else class="sidebar__empty">
-          <svg
-            width="40"
-            height="40"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
+    <!-- Authenticated -->
+    <div v-else class="app">
+      <!-- Sidebar -->
+      <aside
+        class="sidebar"
+        :class="{ 'sidebar--hidden': isMobile && activeNote }"
+      >
+        <div class="sidebar__header">
+          <h1 class="sidebar__logo">Материалы</h1>
+          <button
+            class="sidebar__new-btn"
+            @click="createAndOpen"
+            title="Новый материал"
           >
-            <path
-              d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
-            />
-            <polyline points="14 2 14 8 20 8" />
-          </svg>
-          <p>{{ searchQuery ? "Ничего не найдено" : "Нет заметок" }}</p>
-          <button v-if="!searchQuery" class="btn-create" @click="createAndOpen">
-            Создать первую
+            <img :src="romashkaSrc" alt="Создать" class="btn-romashka" />
           </button>
         </div>
-      </div>
 
-      <!-- Footer count -->
-      <div class="sidebar__footer">
-        {{ notes.length }} {{ pluralNotes(notes.length) }}
-      </div>
-    </aside>
-
-    <!-- Desktop: main area (shown alongside sidebar) -->
-    <main v-if="!isMobile" class="main">
-      <NoteEditor
-        v-if="activeNote"
-        :note="activeNote"
-        :is-mobile="false"
-        @close="activeNoteId = null"
-        @save="
-          (title, content) => updateNote(activeNoteId!, { title, content })
-        "
-      />
-      <div v-else class="main__placeholder">
-        <svg
-          width="60"
-          height="60"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="1"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        >
-          <path
-            d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
+        <!-- Search -->
+        <div class="sidebar__search-wrap">
+          <i class="pi pi-search sidebar__search-icon" />
+          <input
+            class="sidebar__search"
+            v-model="searchQuery"
+            placeholder="Поиск материалов..."
           />
-          <polyline points="14 2 14 8 20 8" />
-          <line x1="16" y1="13" x2="8" y2="13" />
-          <line x1="16" y1="17" x2="8" y2="17" />
-          <polyline points="10 9 9 9 8 9" />
-        </svg>
-        <p>Выберите заметку или<br />создайте новую</p>
-        <button class="btn-create" @click="createAndOpen">
-          <svg
-            width="15"
-            height="15"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2.5"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <line x1="12" y1="5" x2="12" y2="19" />
-            <line x1="5" y1="12" x2="19" y2="12" />
-          </svg>
-          Новая заметка
-        </button>
-      </div>
-    </main>
+        </div>
 
-    <!-- Mobile: modal overlay -->
-    <Teleport to="body">
-      <Transition name="modal">
-        <div
-          v-if="isMobile && activeNote"
-          class="modal-overlay"
-          @click.self="activeNoteId = null"
-        >
-          <div class="modal-sheet">
-            <NoteEditor
-              :note="activeNote"
-              :is-mobile="true"
-              @close="activeNoteId = null"
-              @save="
-                (title, content) =>
-                  updateNote(activeNoteId!, { title, content })
-              "
+        <!-- Notes list -->
+        <div class="sidebar__list">
+          <template v-if="filteredNotes.length > 0">
+            <NoteCard
+              v-for="note in filteredNotes"
+              :key="note.id"
+              :note="note"
+              :active="activeNoteId === note.id"
+              @select="openNote(note.id)"
+              @delete="removeNote(note.id)"
             />
+          </template>
+          <div v-else class="sidebar__empty">
+            <i class="pi pi-file sidebar__empty-icon" />
+            <p>{{ searchQuery ? "Ничего не найдено" : "Нет материалов" }}</p>
           </div>
         </div>
-      </Transition>
-    </Teleport>
+
+        <!-- Footer count -->
+        <div class="sidebar__footer">
+          {{ notes.length }} {{ pluralNotes(notes.length) }}
+        </div>
+      </aside>
+
+      <!-- Desktop: main area -->
+      <main v-if="!isMobile" class="main">
+        <NoteEditor
+          v-if="activeNote"
+          :note="activeNote"
+          :is-mobile="false"
+          @close="activeNoteId = null"
+          @save="
+            (title, content) => updateNote(activeNoteId!, { title, content })
+          "
+        />
+        <div v-else class="main__placeholder">
+          <i class="pi pi-file-edit main__placeholder-icon" />
+          <p>Выберите материал или<br />создайте новый</p>
+          <button class="btn-create" @click="createAndOpen">
+            <img :src="romashkaSrc" alt="" class="btn-romashka" />
+            Новый материал
+          </button>
+        </div>
+      </main>
+
+      <!-- Mobile: modal overlay -->
+      <Teleport to="body">
+        <Transition name="modal">
+          <div
+            v-if="isMobile && activeNote"
+            class="modal-overlay"
+            @click.self="activeNoteId = null"
+          >
+            <div class="modal-sheet">
+              <NoteEditor
+                :note="activeNote"
+                :is-mobile="true"
+                @close="activeNoteId = null"
+                @save="
+                  (title, content) =>
+                    updateNote(activeNoteId!, { title, content })
+                "
+              />
+            </div>
+          </div>
+        </Transition>
+      </Teleport>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from "vue";
+import AppHeader from "./components/Header.vue";
 import NoteCard from "./components/NoteCard.vue";
 import NoteEditor from "./components/NoteEditor.vue";
 import { useNotes } from "./useNotes";
+import { currentUser, authLoading, signInWithGoogle } from "./firebase/auth";
+
+// Файлы из public/ — используем import напрямую (Vite копирует их as-is)
+const romashkaSrc = new URL("/assets/images/romashka.svg", import.meta.url)
+  .href;
+const earsSrc = new URL("/assets/images/ears.png", import.meta.url).href;
 
 const { notes, createNote, updateNote, deleteNote, getNoteById } = useNotes();
 
@@ -238,18 +188,68 @@ function removeNote(id: string) {
 function pluralNotes(n: number): string {
   const mod10 = n % 10;
   const mod100 = n % 100;
-  if (mod10 === 1 && mod100 !== 11) return "заметка";
+  if (mod10 === 1 && mod100 !== 11) return "матриал";
   if (mod10 >= 2 && mod10 <= 4 && (mod100 < 10 || mod100 >= 20))
-    return "заметки";
-  return "заметок";
+    return "материала";
+  return "материалов";
 }
 </script>
 
 <style scoped>
-.app {
+/* ── Root wrapper: header + content ─────── */
+.app-wrapper {
   display: flex;
+  flex-direction: column;
   height: 100vh;
   overflow: hidden;
+  background-image: url(./assets/bg.jpg);
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  position: relative; /* для абсолютного позиционирования ears */
+}
+
+/* ── Ears image: behind sidebar, overlapping header ── */
+.ears {
+  position: absolute;
+  top: -1%; /* начинается от самого верха, перекрывая хедер */
+  left: 8%; /* прижата к левому краю где сайдбар */
+  width: 250px;
+  pointer-events: none;
+  z-index: 2; /* выше хедера (0), ниже сайдбара (2) */
+}
+
+@media (max-width: 699px) {
+  .ears {
+    left: 55%;
+    width: 300px;
+    top: -5%;
+  }
+}
+
+@media (max-width: 480px) {
+  .ears {
+    left: 30%;
+    width: 300px;
+    top: -5%;
+  }
+}
+
+/* ── Content area below header ───────────── */
+.app {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+  padding: 0 40px 40px;
+  gap: 40px;
+  min-height: 0;
+}
+
+@media (max-width: 699px) {
+  .app {
+    padding: 0;
+    gap: 0;
+  }
 }
 
 /* ── Sidebar ─────────────────────────────── */
@@ -257,20 +257,26 @@ function pluralNotes(n: number): string {
   width: 300px;
   min-width: 260px;
   background: var(--bg-secondary);
-  border-right: 1px solid var(--border);
+  background-image: url(./assets/barash.png);
+  background-position: -5% 93%;
+  background-size: 50%;
+  background-repeat: no-repeat;
+  border-radius: 12px;
   display: flex;
   flex-direction: column;
   overflow: hidden;
   transition:
     width 0.25s,
     min-width 0.25s;
+  position: relative;
+  z-index: 3; /* выше ears (1) */
 }
 
-/* On mobile the sidebar takes full width */
 @media (max-width: 699px) {
   .sidebar {
     width: 100%;
     min-width: 0;
+    border-radius: 0;
     border-right: none;
   }
 }
@@ -284,9 +290,6 @@ function pluralNotes(n: number): string {
 }
 
 .sidebar__logo {
-  display: flex;
-  align-items: center;
-  gap: 8px;
   font-size: 16px;
   font-weight: 700;
   color: var(--text-primary);
@@ -296,7 +299,6 @@ function pluralNotes(n: number): string {
   background: var(--accent);
   border: none;
   border-radius: var(--radius-sm);
-  color: #fff;
   width: 34px;
   height: 34px;
   display: flex;
@@ -306,6 +308,7 @@ function pluralNotes(n: number): string {
   transition:
     background 0.15s,
     transform 0.1s;
+  padding: 6px;
 }
 .sidebar__new-btn:hover {
   background: var(--accent-hover);
@@ -313,6 +316,14 @@ function pluralNotes(n: number): string {
 }
 .sidebar__new-btn:active {
   transform: scale(0.95);
+}
+
+/* Romashka image inside buttons */
+.btn-romashka {
+  width: 34px;
+  height: 34px;
+  object-fit: contain;
+  flex-shrink: 0;
 }
 
 .sidebar__search-wrap {
@@ -327,6 +338,7 @@ function pluralNotes(n: number): string {
   transform: translateY(-50%);
   color: var(--text-muted);
   pointer-events: none;
+  font-size: 13px;
 }
 .sidebar__search {
   width: 100%;
@@ -350,10 +362,9 @@ function pluralNotes(n: number): string {
 .sidebar__list {
   flex: 1;
   overflow-y: auto;
-  padding: 4px 12px;
+  padding: 4px 0;
   display: flex;
   flex-direction: column;
-  gap: 8px;
 }
 
 .sidebar__empty {
@@ -366,6 +377,10 @@ function pluralNotes(n: number): string {
   padding: 40px 20px;
   color: var(--text-muted);
   text-align: center;
+}
+.sidebar__empty-icon {
+  font-size: 40px;
+  opacity: 0.4;
 }
 .sidebar__empty p {
   font-size: 13px;
@@ -386,6 +401,7 @@ function pluralNotes(n: number): string {
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  border-radius: 12px;
 }
 .main__placeholder {
   flex: 1;
@@ -397,9 +413,15 @@ function pluralNotes(n: number): string {
   color: var(--text-muted);
   text-align: center;
 }
+.main__placeholder-icon {
+  font-size: 60px;
+  opacity: 0.3;
+  color: var(--text-primary);
+}
 .main__placeholder p {
   font-size: 15px;
   line-height: 1.6;
+  color: var(--text-primary);
 }
 
 /* ── Mobile Modal ────────────────────────── */
@@ -411,7 +433,6 @@ function pluralNotes(n: number): string {
   display: flex;
   align-items: flex-end;
 }
-
 .modal-sheet {
   width: 100%;
   height: 95dvh;
@@ -422,7 +443,6 @@ function pluralNotes(n: number): string {
   flex-direction: column;
 }
 
-/* Modal transition */
 .modal-enter-active {
   transition:
     opacity 0.2s,
@@ -433,10 +453,7 @@ function pluralNotes(n: number): string {
     opacity 0.18s,
     transform 0.18s ease-in;
 }
-.modal-enter-from {
-  opacity: 0;
-  transform: translateY(100%);
-}
+.modal-enter-from,
 .modal-leave-to {
   opacity: 0;
   transform: translateY(100%);
@@ -446,7 +463,7 @@ function pluralNotes(n: number): string {
 .btn-create {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   background: var(--accent);
   color: #fff;
   border: none;
@@ -460,5 +477,30 @@ function pluralNotes(n: number): string {
 }
 .btn-create:hover {
   background: var(--accent-hover);
+}
+
+/* ── Locked / Loading screen ─────────────── */
+.app--locked {
+  justify-content: center;
+  align-items: center;
+}
+
+.locked-msg {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  text-align: center;
+}
+
+.locked-msg__icon {
+  font-size: 52px;
+  color: var(--text-muted);
+  opacity: 0.5;
+}
+
+.locked-msg p {
+  font-size: 15px;
+  color: var(--text-secondary);
 }
 </style>

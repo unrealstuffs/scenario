@@ -7,25 +7,11 @@
         @click.stop="$emit('delete')"
         title="Удалить"
       >
-        <svg
-          width="14"
-          height="14"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        >
-          <polyline points="3 6 5 6 21 6" />
-          <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
-          <path d="M10 11v6M14 11v6" />
-          <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
-        </svg>
+        <i class="pi pi-trash" />
       </button>
     </div>
     <p class="note-card__preview">{{ preview }}</p>
-    <span class="note-card__date">{{ formattedDate }}</span>
+    <span class="note-card__date">[{{ formattedDate }}]</span>
   </div>
 </template>
 
@@ -43,7 +29,7 @@ const preview = computed(() => {
   const text = props.note.content.trim();
   return text.length > 100
     ? text.slice(0, 100) + "…"
-    : text || "Пустая заметка";
+    : text || "Пустой материал";
 });
 
 const formattedDate = computed(() => {
@@ -61,8 +47,6 @@ const formattedDate = computed(() => {
 <style scoped>
 .note-card {
   background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
   padding: 14px 16px;
   cursor: pointer;
   transition:
@@ -78,6 +62,8 @@ const formattedDate = computed(() => {
 }
 
 .note-card.active {
+  border-left: 1px solid var(--accent);
+  border-left-width: 4px;
   border-color: var(--accent);
   background: var(--bg-card-hover);
 }

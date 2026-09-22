@@ -6,8 +6,10 @@ import {
   onSnapshot,
   query,
   orderBy,
+  type Unsubscribe,
 } from "firebase/firestore";
 import { db, scenariosCol } from "./firebase/firestore";
+import { currentUser } from "./firebase/auth";
 import type { Note } from "./types";
 
 // ─── localStorage helpers ─────────────────────────────────────────────────────
@@ -26,31 +28,67 @@ function saveToStorage(notes: Note[]) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(notes));
 }
 
+// ─── UUID без crypto.randomUUID (требует HTTPS) ───────────────────────────────
+function generateId(): string {
+  if (typeof crypto !== "undefined" && crypto.getRandomValues) {
+    const bytes = new Uint8Array(16);
+    crypto.getRandomValues(bytes);
+    bytes[6] = (bytes[6] & 0x0f) | 0x40;
+    bytes[8] = (bytes[8] & 0x3f) | 0x80;
+    const hex = Array.from(bytes).map((b) => b.toString(16).padStart(2, "0"));
+    return [
+      hex.slice(0, 4).join(""),
+      hex.slice(4, 6).join(""),
+      hex.slice(6, 8).join(""),
+      hex.slice(8, 10).join(""),
+      hex.slice(10, 16).join(""),
+    ].join("-");
+  }
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0;
+    return (c === "x" ? r : (r & 0x3) | 0x8).toString(16);
+  });
+}
+
 // ─── Reactive state ───────────────────────────────────────────────────────────
-// Инициализируем из localStorage сразу — чтобы UI не был пустым пока грузится Firestore
 const notes = ref<Note[]>(loadFromStorage());
 
-// Синхронизируем localStorage при каждом изменении
 watch(notes, (val) => saveToStorage(val), { deep: true });
 
-// ─── Firestore real-time listener ─────────────────────────────────────────────
-// onSnapshot подписывается на коллекцию и получает обновления в реальном времени.
-// Когда вы сохраняете заметку на ПК — телефон получит изменение автоматически.
-const q = query(scenariosCol, orderBy("updatedAt", "desc"));
+// ─── Firestore подписка — стартует только при авторизации ─────────────────────
+let unsubscribe: Unsubscribe | null = null;
 
-onSnapshot(
-  q,
-  (snapshot) => {
-    // Заменяем весь список данными из Firestore
-    notes.value = snapshot.docs.map((d) => ({
-      id: d.id,
-      ...(d.data() as Omit<Note, "id">),
-    }));
+watch(
+  currentUser,
+  (user) => {
+    // Отписываемся от предыдущей подписки (если была)
+    if (unsubscribe) {
+      unsubscribe();
+      unsubscribe = null;
+    }
+
+    if (!user) {
+      // Пользователь вышел — очищаем список
+      notes.value = [];
+      return;
+    }
+
+    // Пользователь вошёл — подписываемся на коллекцию
+    const q = query(scenariosCol, orderBy("updatedAt", "desc"));
+    unsubscribe = onSnapshot(
+      q,
+      (snapshot) => {
+        notes.value = snapshot.docs.map((d) => ({
+          id: d.id,
+          ...(d.data() as Omit<Note, "id">),
+        }));
+      },
+      (error) => {
+        console.warn("[Firestore] Snapshot error:", error.message);
+      },
+    );
   },
-  (error) => {
-    console.warn("[Firestore] Snapshot error:", error.message);
-    // При ошибке остаёмся на localStorage-данных
-  },
+  { immediate: true },
 );
 
 // ─── Firestore write helpers ──────────────────────────────────────────────────
@@ -68,13 +106,12 @@ export function useNotes() {
   function createNote(): Note {
     const now = Date.now();
     const note: Note = {
-      id: crypto.randomUUID(),
-      title: "Новая заметка",
+      id: generateId(),
+      title: "Новый материал",
       content: "",
       createdAt: now,
       updatedAt: now,
     };
-    // Оптимистично добавляем локально — onSnapshot подтвердит/обновит
     notes.value.unshift(note);
     firestoreSet(note).catch((e) =>
       console.warn("[Firestore] Create failed:", e.message),
